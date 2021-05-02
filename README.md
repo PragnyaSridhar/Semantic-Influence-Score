@@ -35,18 +35,22 @@ Directories have been named in order of tasks carried out<br>
 - sparse_mat.ipynb - make sparse matrix to compute similarity scores<br>
 - ssAPI.py - make semantic scholar API calls and obtain references of all papers in network<br>
 <br>
+
 ##### 6_SIS<br>
 - Normalize_venue_prestige.ipynb - normalize H5 scores of venues obtained<br>
 - semantic_score.ipynb - compute semantic score using influence and similarity scores<br>
 - venue_prestige.csv - contains the h5 and normalized h5 indices of venues of base papers<br>
 - venue_prestige.ipynb - make dataset containing details about venue - name, type(journal/conference), h5 index<br>
 <br>
+
 ##### 7_Result analysis<br>
 - regression&distribution.ipynb - check if regression between SIS and raw citation possible, find distribution SIS belongs to<br>
 <br>
 <br>
 final_dataset.csv - complete dataset with tags, complete network details, similarity, influence and semantic scores<br>
 <br>
+
+
 ## Results
 - SIS is not lineraly dependent on Raw citations (Best fit line does not exist)<br>
 - Correlation between SIS and raw citation is scant (Confidence interval of Pearson correlation coefficient)<br>
