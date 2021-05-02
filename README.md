@@ -2,6 +2,7 @@
 On a network of influential papers obtained through vigorous filtering, topics were obtained via topic modelling. Semantic similarity between the papers and their derivative works was computed using their references. A strong semantic similarity (in the range of 0.9 to 24) was observed between these articles. Together with the reference intersection, semantic topic similarity gives us a credible corpora of articles to study scholarly influence of base papers on their 'derivative works network'. These networks, which we term as Semantic Influence Networks, and not the traditional citation networks, are the building blocks for analyzing and quantifying article influence, SIS, via a novel application of the Heat Diffusion Model for the influence score. Our final corpora, carefully filtered, is a sample of 1258 articles with 307696 total citations, an average citation of 244, and median citation of 151. The maximum citation of one article stands at 12871 and the minimum at 100 (due to applied filter).
 
 ### Developed jointly by Pragnya Sridhar and Deepika Karanji
+### Mentors: Dr Snehanshu Saha, Prof Swati Gambhire, Prof Sravan Danda
 Note: The repo merely contains the files we moved from our google colab to Github.
 
 ## Set up
