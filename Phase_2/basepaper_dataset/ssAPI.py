@@ -4,6 +4,9 @@ from datetime import *
 import time as Time
 import csv
 import sys
+import os
+import telegram_send
+
 
 end_index = 0
 start_index = 0
@@ -76,9 +79,13 @@ def get_references(csv_path,using='ID',save_name='temp.csv',start_index=0,end_in
         err=0
 
         if(response.status_code!=200):
-            print(response.status_code)
-            print('Completed ',count)
-            return
+            if(response.status_code==404):
+                print(response.status_code, 'error on',index)
+                continue
+            else:
+                print(response.status_code)
+                print('Completed ',count)
+                return
             # time_i = 1
             # while(response.status_code!=200):
             #     if(response.status_code==404):
@@ -131,11 +138,19 @@ def get_references(csv_path,using='ID',save_name='temp.csv',start_index=0,end_in
             refNames = ' #;# '.join(refNames)
             basepaper_ID = response.get('paperId','')
             fields_of_study = response.get('fieldsOfStudy','')
+            influential_citation_count = response.get('influentialCitationCount',str(-1))
+            cited_by = response.get('numCitedBy',str(-1))
+            citing = response.get('numCiting',str(-1))
+            venue = response.get('venue','')
+            year = response.get('year','')
+            authors = response.get('authors','')
+
             topics = [x['topic'] for x in response.get('topics',[])]
 
             with open(save_name,'a+') as f:
                 writer = csv.writer(f)
-                writer.writerow([ID2,basepaper_ID,paper_names[index],fields_of_study,topics,refID,refNames]) 
+                writer.writerow([index,ID2,basepaper_ID,paper_names[index],fields_of_study,influential_citation_count,
+                cited_by,citing,venue,year,authors,topics,refID,refNames]) 
         
         # ret_refID.append(refID)
         # ret_refNames.append(refNames)
@@ -168,12 +183,20 @@ else:
 
     print('Running between ', start_index, end_index)
     save_name = 'basepapers.csv'
-    with open(save_name,'a+') as f:
-        writer = csv.writer(f)
-        writer.writerow(['Corpus ID','S2 ID','name','fields_of_study','topics','refID','refNames']) 
-        print('Wrote header') 
+    if(save_name not in os.listdir('/')):
+        with open(save_name,'a+') as f:
+            writer = csv.writer(f)
+            writer.writerow(['index','Corpus ID','S2 ID','name','fields_of_study','influential_citation_count',
+                    'cited_by','citing','venue','year','authors','topics','refID','refNames']) 
+            print('Wrote header') 
     get_references(csv_path='papers_of_interest.csv',using='s2url',save_name=save_name,start_index=start_index,end_index=end_index) 
 
+    telegram_token = '1437027031:AAFZ3AiVsGrxNQcWYGrMemHLX4IGqosthjk'
+    chat_id = '1422492198'
+    path_config = telegram_send.get_config_path()
+    with open(path_config, 'w') as f:
+        f.write(f'[telegram]\ntoken = {telegram_token}\nchat_id = {chat_id}')
+    telegram_send.send(messages=['Check M1'])
     # print('POOL C...')
     # get_references('poolC_s2urls.csv',using='s2url',save_name='basepaperID_PoolC.csv',index=1000)
 
