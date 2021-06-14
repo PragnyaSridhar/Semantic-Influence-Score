@@ -4,11 +4,12 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.by import By
-import time
+import time as Time
 import os
 import pandas as pd
 import sys
 import telegram_send
+from datetime import *
 
 
 def bibDownloader(driver,partialPaperName,err_file):
@@ -19,7 +20,7 @@ def bibDownloader(driver,partialPaperName,err_file):
 
 
     inputBox.send_keys(partialPaperName)
-    time.sleep(3)
+    Time.sleep(3)
     # Full dropdown list div
     try:
         a = driver.find_elements_by_xpath('//*[@id="desktop-app"]/div[2]/div[1]/div[1]/div/div/div[2]')
@@ -27,7 +28,7 @@ def bibDownloader(driver,partialPaperName,err_file):
     except:
         with open(err_file,'a+') as f:
             f.write(str(partialPaperName)+'\n')
-        return
+        return -1
     # print(len(b),b)
     # b contains the autocomplete results
     # b[x] should be b of index that matches closest
@@ -43,8 +44,8 @@ def bibDownloader(driver,partialPaperName,err_file):
         #Takes time to load the graph, so wait
 
         # print("Waiting for graph to load")
-        element = WebDriverWait(driver, 300).until(expected_conditions.visibility_of_element_located((By.CLASS_NAME, 'main-view-window')))
-        time.sleep(5)
+        element = WebDriverWait(driver, 60).until(expected_conditions.visibility_of_element_located((By.CLASS_NAME, 'main-view-window')))
+        Time.sleep(5)
         # print("Graph Loaded")
 
         window_after = driver.window_handles[0]
@@ -65,6 +66,7 @@ def bibDownloader(driver,partialPaperName,err_file):
     else:
         with open(err_file,'a+') as f:
             f.write(str(partialPaperName)+'\n')
+        return -1
 
 def listdir(dir):
     files = [x for x in os.listdir(dir) if x[-4:]=='.bib']
@@ -97,20 +99,30 @@ def download_all(csv_path,err_file,save_dir,start_index,end_index):
         n = names[ind]
         n = str(n)
         try:
-            bibDownloader(driver,n.strip(),err_file)
+            r = bibDownloader(driver,n.strip(),err_file)
+            if(r==-1):
+                continue
+            # if(len(f)==0):
+            #     Time.sleep(20)
+            Time.sleep(2)
             f = listdir(download_dir)
-            while(len(f)==0):
+            t = datetime.now()+timedelta(minutes = 2)
+            while(len(f)==0 and datetime.now()<t):
                 f = listdir(download_dir)
+            # f = listdir(download_dir)
+            Time.sleep(2)
             # assert len(f)==1
             # print(f)
             # print(download_dir+'/'+f[0])
             # print(save_dir+'/'+n.lower()+'.bib')
             os.rename(download_dir+'/'+f[0],save_dir+'/'+n.lower()+'.bib')
+            Time.sleep(2)
         except Exception as e:
             print(e)
             print(n, ' Did not work')
             with open(err_file,'a+') as f:
                 f.write(n.strip()+'\n')
+        print(ind)
         
         # i+=1
         if(ind%100==0):
@@ -127,9 +139,9 @@ else:
 
     print('Running between ', start_index, end_index)
 
-    st = time.time()
+    st = Time.time()
     download_all('dataset.csv','errors.txt','./Bibs/actual',start_index,end_index)
-    en = time.time()
+    en = Time.time()
     print('All done in',en-st)
 
     telegram_token = '1437027031:AAFZ3AiVsGrxNQcWYGrMemHLX4IGqosthjk'
