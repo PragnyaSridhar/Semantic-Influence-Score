@@ -44,7 +44,7 @@ def bibDownloader(driver,partialPaperName,err_file):
         #Takes time to load the graph, so wait
 
         # print("Waiting for graph to load")
-        element = WebDriverWait(driver, 60).until(expected_conditions.visibility_of_element_located((By.CLASS_NAME, 'main-view-window')))
+        element = WebDriverWait(driver, 240).until(expected_conditions.visibility_of_element_located((By.CLASS_NAME, 'main-view-window')))
         Time.sleep(5)
         # print("Graph Loaded")
 
@@ -54,6 +54,7 @@ def bibDownloader(driver,partialPaperName,err_file):
         derivativeWorksButton = driver.find_element_by_xpath('//*[@id="desktop-app"]/div[2]/div[1]/div/button[2]')
         derivativeWorksButton.click() 
 
+        Time.sleep(5)
         window_after = driver.window_handles[0]
         driver.switch_to.window(window_after)
         # print(driver.current_url) #/derivative
@@ -82,28 +83,32 @@ def download_all(csv_path,err_file,save_dir,start_index,end_index):
     #chromeOptions.add_argument('--headless')
 
     driver = webdriver.Chrome(ChromeDriverManager().install(),options=chromeOptions)
-    # with open(name_file,'r') as f:
+    # with open(csv_path,'r') as f:
     #     names = list(set(f.read().splitlines()))
     df = pd.read_csv(csv_path)
     names = list(df['S2 ID'])
-    # id = list(df['index'])
+    id = list(df['index'])
 
     # with open(err_file,'w') as f:
     #     pass
 
     if(end_index==0):
-        end_index = len(df)
+        end_index = len(names)
     
     # i = 0
+    err_count = 0
     for ind in range(start_index,end_index):
         n = names[ind]
         n = str(n)
+        # if(err_count==20):
+        #     return -1
         try:
             r = bibDownloader(driver,n.strip(),err_file)
             if(r==-1):
                 continue
             # if(len(f)==0):
             #     Time.sleep(20)
+            err_count = 0
             Time.sleep(2)
             f = listdir(download_dir)
             t = datetime.now()+timedelta(minutes = 2)
@@ -118,6 +123,7 @@ def download_all(csv_path,err_file,save_dir,start_index,end_index):
             os.rename(download_dir+'/'+f[0],save_dir+'/'+n.lower()+'.bib')
             Time.sleep(2)
         except Exception as e:
+            err_count+=1
             print(e)
             print(n, ' Did not work')
             with open(err_file,'a+') as f:
@@ -128,6 +134,7 @@ def download_all(csv_path,err_file,save_dir,start_index,end_index):
         if(ind%100==0):
             print('\n',ind, ' done')
         # print(ind, 'worked')
+    return 1
 
 args = sys.argv[1:]
 
@@ -137,16 +144,21 @@ else:
     start_index = int(args[0])
     end_index = int(args[1])
 
-    print('Running between ', start_index, end_index)
-
-    st = Time.time()
-    download_all('dataset.csv','errors.txt','./Bibs/actual',start_index,end_index)
-    en = Time.time()
-    print('All done in',en-st)
-
     telegram_token = '1437027031:AAFZ3AiVsGrxNQcWYGrMemHLX4IGqosthjk'
     chat_id = '1422492198'
     path_config = telegram_send.get_config_path()
     with open(path_config, 'w') as f:
         f.write(f'[telegram]\ntoken = {telegram_token}\nchat_id = {chat_id}')
-    telegram_send.send(messages=['Check M1'])
+
+    print('Running between ', start_index, end_index)
+
+    st = Time.time()
+    ret = download_all('dataset_sampled_by_author.csv','errors.txt','./Bibs/actual',start_index,end_index)
+    # ret = download_all('errors.txt','errors3.txt','./Bibs/actual',start_index,end_index)
+    en = Time.time()
+    if(ret==1):
+        print('All done in',en-st)
+        telegram_send.send(messages=['Done on M1'])
+    if(ret==-1):
+        print('Error',en-st)
+        telegram_send.send(messages=['Error on M1'])
